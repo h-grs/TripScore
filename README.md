@@ -15,7 +15,10 @@ Comparateur d'offres de voyage — architecture N-tiers · TypeScript · Node/Ex
 ```bash
 cd backend
 npm install
+
 npm run dev       # mock data, port 3000
+# OU
+USE_DB=true npm run dev   # SQLite
 ```
 
 ### Frontend
@@ -49,11 +52,14 @@ Teste `OfferService` en isolation via `FakeOfferRepository` — aucune dépendan
 ```
 backend/src/
   models/         Offer, FilterCriteria
-  repositories/   IOfferRepository (contrat), MockOfferRepository, SqlOfferRepository
+  repositories/   IOfferRepository (contrat)
+                  MockOfferRepository (in-memory, mock/tests)
+                  SqlOfferRepository  (SQLite, production)
   services/       OfferService — filtre, score, tri
   controllers/    offerController — thin, HTTP only
   routes/         offerRoutes
-  app.ts          composition root
+  app.ts          composition root — injecte Mock ou SQL selon USE_DB
+
 ```
 
 Le service dépend uniquement de `IOfferRepository` (interface). `app.ts` injecte l'implémentation concrète selon l'environnement.
