@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "commonjs",
-    "outDir": "dist",
-    "rootDir": "src",
+    "lib": ["ES2023"],
+    "module": "NodeNext", // ← au lieu de "CommonJS"
+    "moduleResolution": "NodeNext", // ← au lieu de "node"
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "isolatedModules": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "types": ["jest", "node"]
+    "types": ["jest", "node"],
+    "outDir": "dist",
+    "rootDir": "."
   },
   "include": ["src", "tests"]
 }
