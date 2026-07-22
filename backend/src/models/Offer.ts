@@ -5,7 +5,8 @@ export interface Offer {
   category: "budget" | "standard" | "luxury";
   price: number;
   rating: number;
-  durationDays?: number;
+  durationDays: number;
+  reviewsCount: number;
 }
 
 export interface FilterCriteria {

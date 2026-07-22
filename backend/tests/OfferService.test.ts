@@ -10,6 +10,8 @@ const mockOffers: Offer[] = [
     category: "budget",
     price: 89,
     rating: 4.2,
+    durationDays: 1,
+    reviewsCount: 340,
   },
   {
     id: "2",
@@ -18,6 +20,8 @@ const mockOffers: Offer[] = [
     category: "luxury",
     price: 1450,
     rating: 4.8,
+    durationDays: 10,
+    reviewsCount: 1250,
   },
   {
     id: "3",
@@ -26,6 +30,8 @@ const mockOffers: Offer[] = [
     category: "standard",
     price: 320,
     rating: 3.9,
+    durationDays: 4, // il y était déjà
+    reviewsCount: 85,
   },
 ];
 
