@@ -1,27 +1,63 @@
-// tests/pipeline.test.ts
-import { executer } from "../src/engine/pipeline";
+import type { Offer } from "../src/models/Offer";
+import type { Critere } from "../src/engine/types";
 import { normaliser } from "../src/engine/normalize";
+import { executer } from "../src/engine/pipeline";
 import { barycentreScoring } from "../src/engine/scoring/barycentreScoring";
-import type { Critere, Produit } from "../src/engine/types";
 
 const CRITERES: Critere[] = [
-  { attr: "prix", direction: "min" },
-  { attr: "autonomie", direction: "max" },
-  { attr: "puissance", direction: "max" },
-  { attr: "qualite", direction: "max" },
+  { attr: "price", direction: "min" },
+  { attr: "rating", direction: "max" },
+  { attr: "reviewsCount", direction: "max" },
+  { attr: "durationDays", direction: "max" },
 ];
 
-const catalogue: Produit[] = [
-  { id: 1, nom: "Casque", prix: 120, autonomie: 9, puissance: 7, qualite: 9 },
-  { id: 2, nom: "PC", prix: 1200, autonomie: 7, puissance: 10, qualite: 9 },
-  { id: 3, nom: "Souris", prix: 90, autonomie: 10, puissance: 6, qualite: 8 },
-  { id: 4, nom: "Écran", prix: 300, autonomie: 5, puissance: 8, qualite: 7 },
+const catalogue: Offer[] = [
+  {
+    id: "off-1",
+    destination: "Lisbonne",
+    type: "flight",
+    category: "budget",
+    price: 180,
+    rating: 4.4,
+    durationDays: 3,
+    reviewsCount: 850,
+  },
+  {
+    id: "off-2",
+    destination: "Japon",
+    type: "package",
+    category: "luxury",
+    price: 2100,
+    rating: 4.8,
+    durationDays: 14,
+    reviewsCount: 2100,
+  },
+  {
+    id: "off-3",
+    destination: "Écosse",
+    type: "package",
+    category: "standard",
+    price: 450,
+    rating: 4.6,
+    durationDays: 7,
+    reviewsCount: 320,
+  },
+  {
+    id: "off-4",
+    destination: "Baléares",
+    type: "hotel",
+    category: "budget",
+    price: 320,
+    rating: 4.1,
+    durationDays: 5,
+    reviewsCount: 1400,
+  },
 ];
 
-function recommanderSur(items: Produit[], favorisIds: number[]) {
+function recommanderSur(items: Offer[], favorisIds: string[]) {
   const favorisSet = new Set(favorisIds);
-  const favorisNorm = normaliser(items, CRITERES).filter((p) =>
-    favorisSet.has(p.id),
+  const favorisNorm = normaliser(items, CRITERES).filter((o) =>
+    favorisSet.has(o.id),
   );
   const profil = barycentreScoring.construireProfil!(favorisNorm, CRITERES);
 
@@ -35,16 +71,25 @@ function recommanderSur(items: Produit[], favorisIds: number[]) {
 
 describe("moteur de recommandation", () => {
   it("deux profils différents → deux classements différents", () => {
-    const budget = recommanderSur(catalogue, [3]);
-    const puissance = recommanderSur(catalogue, [2]);
+    const petitBudget = recommanderSur(catalogue, ["off-1"]);
+    const grandVoyage = recommanderSur(catalogue, ["off-2"]);
 
-    expect(budget.map((p) => p.id)).not.toEqual(puissance.map((p) => p.id));
-    expect(budget[0]!.id).toBe(3);
-    expect(puissance[0]!.id).toBe(2);
+    expect(petitBudget.map((o) => o.id)).not.toEqual(
+      grandVoyage.map((o) => o.id),
+    );
+    expect(petitBudget[0]!.id).toBe("off-1");
+    expect(grandVoyage[0]!.id).toBe("off-2");
   });
 
   it("le favori lui-même obtient le meilleur score", () => {
-    const resultats = recommanderSur(catalogue, [2]);
-    expect(resultats[0]!.id).toBe(2); // distance 0 au barycentre de lui-même
+    const resultats = recommanderSur(catalogue, ["off-2"]);
+    expect(resultats[0]!.id).toBe("off-2");
+  });
+
+  it("un profil composite (2 favoris) produit un barycentre intermédiaire", () => {
+    const mixte = recommanderSur(catalogue, ["off-1", "off-4"]);
+    const posEcosse = mixte.findIndex((o) => o.id === "off-3");
+    const posJapon = mixte.findIndex((o) => o.id === "off-2");
+    expect(posEcosse).toBeLessThan(posJapon);
   });
 });
