@@ -1,43 +1,49 @@
-import { produitRepository } from "../repositories/produitRepository";
+import type { FilterCriteria } from "../models/Offer";
+import type { IOfferRepository } from "../repositories/IOfferRepository";
+import type { Critere } from "../engine/types";
 import { getStrategie, type StrategieNom } from "../engine/scoring";
+import { depuisCriteres } from "../engine/filters";
 import { normaliser } from "../engine/normalize";
-import * as pipeline from "../engine/pipeline";
-import type { Critere, Filtre, Produit } from "../engine/types";
+import { executer } from "../engine/pipeline";
 
 const CRITERES: Critere[] = [
-  { attr: "prix", direction: "min" },
-  { attr: "autonomie", direction: "max" },
-  { attr: "puissance", direction: "max" },
-  { attr: "qualite", direction: "max" },
+  { attr: "price", direction: "min" },
+  { attr: "rating", direction: "max" },
+  { attr: "reviewsCount", direction: "max" },
+  { attr: "durationDays", direction: "max" },
 ];
 
 interface RecommandationParams {
-  favorisIds: number[];
+  favorisIds: string[];
   strategieNom?: StrategieNom;
-  filtres?: Filtre<Produit>[];
+  criteres?: FilterCriteria;
 }
 
-export async function recommander({
-  favorisIds,
-  strategieNom = "barycentre",
-  filtres,
-}: RecommandationParams) {
-  const catalogue = await produitRepository.findAll();
+export class RecommandationService {
+  constructor(private readonly offerRepository: IOfferRepository) {}
 
-  const favorisSet = new Set(favorisIds);
-  const favorisNorm = normaliser(catalogue, CRITERES).filter((p) =>
-    favorisSet.has(p.id),
-  );
-  if (favorisNorm.length === 0) throw new Error("Aucun favori valide fourni");
+  async recommander({
+    favorisIds,
+    strategieNom = "barycentre",
+    criteres,
+  }: RecommandationParams) {
+    const catalogue = await this.offerRepository.findAll();
 
-  const strategie = getStrategie(strategieNom);
-  const profil = strategie.construireProfil?.(favorisNorm, CRITERES) ?? null;
+    const favorisSet = new Set(favorisIds);
+    const favorisNorm = normaliser(catalogue, CRITERES).filter((o) =>
+      favorisSet.has(o.id),
+    );
+    if (favorisNorm.length === 0) throw new Error("Aucun favori valide fourni");
 
-  return pipeline.executer({
-    items: catalogue,
-    criteres: CRITERES,
-    filtres,
-    strategie,
-    contexte: { profil, criteres: CRITERES },
-  });
+    const strategie = getStrategie(strategieNom);
+    const profil = strategie.construireProfil?.(favorisNorm, CRITERES) ?? null;
+
+    return executer({
+      items: catalogue,
+      criteres: CRITERES,
+      filtres: criteres ? depuisCriteres(criteres) : [],
+      strategie,
+      contexte: { profil, criteres: CRITERES },
+    });
+  }
 }
