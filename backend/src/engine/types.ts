@@ -1,15 +1,8 @@
-export interface Produit {
-  id: number;
-  nom: string;
-  prix: number;
-  autonomie: number;
-  puissance: number;
-  qualite: number;
-}
+import type { Offer } from "../models/Offer";
 
-export type AttributNumerique = keyof Pick
-  Produit,
-  "prix" | "autonomie" | "puissance" | "qualite"
+export type AttributNumerique = keyof Pick<
+  Offer,
+  "price" | "rating" | "durationDays" | "reviewsCount"
 >;
 
 export interface Critere {
@@ -18,23 +11,16 @@ export interface Critere {
 }
 
 export type Normalise<T> = T & { _norm: Record<AttributNumerique, number> };
-
 export type Score<T> = T & { score: number };
-
 export type Profil = Record<AttributNumerique, number>;
-
 export type Filtre<T> = (item: T) => boolean;
-
-// LE contrat du Strategy pattern — c'est cette interface que tu montres en revue de code
-export interface ScoringStrategy {
-  construireProfil?(
-    favoris: Normalise<Produit>[],
-    criteres: Critere[],
-  ): Profil;
-  scorer(item: Normalise<Produit>, contexte: ScoringContexte): number;
-}
 
 export interface ScoringContexte {
   profil: Profil | null;
   criteres: Critere[];
+}
+
+export interface ScoringStrategy {
+  construireProfil?(favoris: Normalise<Offer>[], criteres: Critere[]): Profil;
+  scorer(item: Normalise<Offer>, contexte: ScoringContexte): number;
 }

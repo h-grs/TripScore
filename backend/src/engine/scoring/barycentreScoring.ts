@@ -1,14 +1,14 @@
+import type { Offer } from "../../models/Offer";
 import type {
   Critere,
   Normalise,
-  Produit,
   Profil,
   ScoringContexte,
   ScoringStrategy,
 } from "../types";
 
 export const barycentreScoring: ScoringStrategy = {
-  construireProfil(favoris: Normalise<Produit>[], criteres: Critere[]): Profil {
+  construireProfil(favoris: Normalise<Offer>[], criteres: Critere[]): Profil {
     const profil = {} as Profil;
     for (const { attr } of criteres) {
       profil[attr] =
@@ -18,7 +18,7 @@ export const barycentreScoring: ScoringStrategy = {
   },
 
   scorer(
-    item: Normalise<Produit>,
+    item: Normalise<Offer>,
     { profil, criteres }: ScoringContexte,
   ): number {
     if (!profil) throw new Error("barycentre: profil requis");

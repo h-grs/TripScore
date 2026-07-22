@@ -1,4 +1,4 @@
-import type { Critere, Normalise, AttributNumerique } from "./types";
+import type { AttributNumerique, Critere, Normalise } from "./types";
 
 export function normaliser<T extends Record<AttributNumerique, number>>(
   items: T[],
